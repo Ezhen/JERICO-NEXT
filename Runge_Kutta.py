@@ -2,7 +2,7 @@ from pylab import *
 from netCDF4 import Dataset
 from numpy.linalg import inv
 
-# The goal is to compute different drigter trajectories and see, how the flow field will very
+# Subset the domain
 
 latmin = 70 #100
 latmax = 240 #200
@@ -12,37 +12,15 @@ lonmax = 450 #150
 n = Dataset('/home/evgeny/Downloads/sv04-med-ingv-cur-an-fc-h_1531404445014.nc', 'r', format='NETCDF4')
 lon = n.variables['lon'][lonmin:lonmax]
 lat = n.variables['lat'][latmin:latmax]
-uu = n.variables['uo'][0,0,latmin:latmax,lonmin:lonmax]
-vv = n.variables['vo'][0,0,latmin:latmax,lonmin:lonmax]
-
-def distance_func(lat0,lat1,lon0,lon1):
-	# https://stackoverflow.com/questions/19412462/getting-distance-between-two-points-based-on-latitude-longitude
-	R = 6373.0
-
-	lat1 = np.radians(lat0)
-	lon1 = np.radians(lon0)
-	lat2 = np.radians(lat1)
-	lon2 = np.radians(lon1)
-
-	dlon = lon2 - lon1
-	dlat = lat2 - lat1
-
-	a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
-	c = 2 * np.atan2(np.sqrt(a), np.sqrt(1 - a))
-
-	distance = R * c
-	return distance
-
+u = n.variables['uo'][0,0,latmin:latmax,lonmin:lonmax]
+v = n.variables['vo'][0,0,latmin:latmax,lonmin:lonmax]
 
 # put them on the cetner of the grid cells
 
-u = (uu[1:-1,0:-1]+uu[1:-1,1:])/2.
-v = (vv[1:,1:-1]+vv[0:-1,1:-1])/2.
-
-
 def pt():
+	#plotting function
 	lats,lons = np.meshgrid(lat,lon)
-	#quiver(lats[::3],lons[::3],uu[::3,::3],vv[::3,::3])
+	#quiver(lats[::3],lons[::3],u[::3,::3],v[::3,::3])
 	plot(x_free[1,:],x_free[0,:], label='no correction')
 	ylim(lat.min(),lat.max()); xlim(lon.min(),lon.max())
 	#scatter(x_pos[0,:],x_pos[1,:],s=155,c = P[0,0,:]+P[1,1,:], cmap='rainbow',edgecolors = None)
@@ -52,6 +30,7 @@ def pt():
 
 
 def crd(lat_t,lon_t):
+	# calculation of coordinates in terms of a regular grid of a Copernicus product 
 	fract_j = (lon_t-lon[0])/(lon[1]-lon[0])
 	fract_i = (lat_t-lat[0])/(lat[1]-lat[0])
 	i,j = floor(fract_i),floor(fract_j)
@@ -80,6 +59,7 @@ def vel(t, x):
 	
 # define runge-kutta function	
 def rgk(x, t, dt):
+	# Runge-Kutta discretization scheme
 	xp = x + dt * vel(t,x) / 2. 
 	x = x + dt * vel(t,xp)
 	print(t,x)
@@ -97,7 +77,7 @@ for i in range(1,n_it):
 	# calculation  of free x
 	x_free[:,i] = rgk(x_free[:,i-1], i, dt)
 
-
+pt()
 	
 	
 

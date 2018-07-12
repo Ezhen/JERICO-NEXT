@@ -10,6 +10,7 @@ import calendar
 from build_grid import *
 import cmocean.cm as cm
 
+# Function plots velocity field nicely
 cmap = cm.speed
 
 latmin = 70 #100
