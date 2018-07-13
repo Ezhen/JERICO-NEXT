@@ -10,7 +10,7 @@ def crd(lat_t,lon_t,lat,lon):
 	#print(i,j,di,dj,fract_i,fract_j)
 	return i,j,di,dj
 
-def vel(t, x, lat,lon,u,v):
+def vel(x, lat,lon,u,v):
 	# check if a tracer still inside the domain
 	if x[1]>lon.max() or x[0]>lat.max() or x[1]<lon.min() or x[0]<lat.min():
 		return array([0,0])
@@ -29,25 +29,19 @@ def vel(t, x, lat,lon,u,v):
 	return np.array([vi,ui])
 	
 # define runge-kutta function	
-def rgk(x, t, dt, lat,lon,u,v):
+def rgk(x, dt, lat,lon,u,v):
 	# Runge-Kutta discretization scheme
-	xp = x + dt * vel(t,x,lat,lon,u,v) / 2. 
-	x = x + dt * vel(t,xp,lat,lon,u,v)
-	print(t,x)
+	xp = x + dt * vel(x,lat,lon,u,v) / 2. 
+	x = x + dt * vel(xp,lat,lon,u,v)
+	print(x)
 	return x
 
-def buoy(lat0,lon0,lat,lon,u,v,dt,n_it):
+def buoy(lat0,lon0,lat,lon,u,v,dt):
 	# declaration of array for a priori quantities
-	x_free = np.zeros((2,n_it)) # free
-	x_free[:,0] = [lat0,lon0]
+	x_free0 = [lat0,lon0]
+	return rgk(x_free0, dt,lat,lon,u,v)
 
-	for i in range(1,n_it):
-		# calculation  of free x
-		try:
-			x_free[:,i] = rgk(x_free[:,i-1], i, dt,lat,lon,u,v)
-		except:
-			return x_free[:,0:i-1]
-	return x_free
+
 	
 	
 
